@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>FikaBotDeathReconcile</AssemblyName>
+    <RootNamespace>FikaBotDeathReconcile</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <Product>Fika Bot Death Reconcile</Product>
+    <Description>Fika coop: reconcile bot death desync (client-dead / host-alive zombie bots)</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TarkovDir Condition="'$(TarkovDir)' == ''">U:\Games\EscapeFromTarkov4\</TarkovDir>
+    <CursorModdingDir>$(TarkovDir)CURSORAIMODING\</CursorModdingDir>
+    <TarkovManagedDir>$(TarkovDir)EscapeFromTarkov_Data\Managed\</TarkovManagedDir>
+    <TarkovBepInExCoreDir>$(TarkovDir)BepInEx\core\</TarkovBepInExCoreDir>
+    <GameRefsDir>$(CursorModdingDir)game-assembly-base\05-reference-dlls\</GameRefsDir>
+    <FikaCoreDir>$(CursorModdingDir)gitarchive\new4\Fika\Fika-Plugin-2.3.1\</FikaCoreDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(TarkovBepInExCoreDir)0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>$(TarkovBepInExCoreDir)BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameRefsDir)Assembly-CSharp-remapped.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Comfort">
+      <HintPath>$(TarkovManagedDir)Comfort.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Fika.Core">
+      <HintPath>$(FikaCoreDir)Fika.Core\bin\Release\netstandard2.1\Fika.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(TarkovManagedDir)UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(TarkovManagedDir)UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(TarkovManagedDir)UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="src\PluginInfo.cs" />
+    <Compile Include="src\PluginCore.cs" />
+    <Compile Include="src\BotDeathSnapshot.cs" />
+    <Compile Include="src\BotDeathSnapshotCollector.cs" />
+    <Compile Include="src\BotDeathReconcilePackets.cs" />
+    <Compile Include="src\BotDeathReconcileNetwork.cs" />
+    <Compile Include="src\BotDeathForceKill.cs" />
+    <Compile Include="src\BotDeathReconcileBehaviour.cs" />
+    <Compile Include="src\BotDeathAudioSilencer.cs" />
+    <Compile Include="src\BotDeathAudioPatches.cs" />
+  </ItemGroup>
+
+</Project>
