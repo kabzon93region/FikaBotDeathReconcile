@@ -17,7 +17,7 @@ git init
 git add .
 git commit -m "Source backup Fika Bot Death Reconcile v1.0.2"
 git branch -M main
-git remote add origin https://github.com/${GITHUB_OWNER:-YOUR_GITHUB_USER}/FikaBotDeathReconcile.git
+git remote add origin https://github.com/kabzon93region/FikaBotDeathReconcile.git
 git push -u origin main
 ```
 
