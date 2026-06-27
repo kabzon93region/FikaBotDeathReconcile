@@ -2,69 +2,49 @@
 
 
 
-
-
-
-
 **GitHub:** [kabzon93region](https://github.com/kabzon93region)
 
-**Deployment:** `(headless_all)`  
+**Клиентский мод для SPT 4 + Fika.** Согласование смерти ботов между хостом и клиентами в Fika coop. Предотвращает рассинхрон — когда на одном клиенте бот мёртв, а на другом ещё жив.
 
 
 
-**Version:** `1.0.2`  
+## Возможности
 
 
 
-**Platform:** EFT 16.9 / SPT 4.0.13 / Fika 2.3.x
+- Синхронизация статуса смерти ботов host↔client
+
+- Предотвращение ghost-ботов (живы на одном клиенте, мертвы на другом)
+
+- Минимальная нагрузка — только события смерти
 
 
 
+## Установка
 
 
 
-
-Согласование смерти ботов host↔client в Fika coop.
-
+1. Скопировать `FikaBotDeathReconcile.dll` в `BepInEx/plugins/` (на headless-хосте и клиентах)
 
 
 
+## Требования
 
 
 
-## Install
+- **Fika** headless-coop
+
+- **SPT**: 4.0.x
+
+- **BepInEx**: 5.4.x
 
 
 
+## Совместимость
 
 
 
-
-1. Download release zip from GitHub Releases.
-
-
-
-2. Extract into Escape from Tarkov game root (`EscapeFromTarkov.exe`).
-
-
-
-3. See `INSTALL.md` in release folder (not inside zip).
-
-
-
-
-
-
-
-## Changelog
-
-
-
-
-
-
-
-See [CHANGELOG.md](CHANGELOG.md).
+- `headless_all` — и на хосте, и на клиентах
 
 
 
