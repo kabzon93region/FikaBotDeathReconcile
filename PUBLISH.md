@@ -31,10 +31,10 @@ python CURSORAIMODING/tools/publish/publish_github_release.py FikaBotDeathReconc
 
 Прикрепить zip (только игровые файлы, без INSTALL.md):
 
-`\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FikaBotDeathReconcile_(headless_all)_v1.0.2_2026-06-26.zip`
+`\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FikaBotDeathReconcile_(headless_all)_v1.0.2_2026-06-27.zip`
 
 ```powershell
-gh release create v1.0.2 "\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FikaBotDeathReconcile_(headless_all)_v1.0.2_2026-06-26.zip" ^
+gh release create v1.0.2 "\\Servant\data\Games\EscapeFromTarkov4\CURSORAIMODING\releases\FikaBotDeathReconcile_(headless_all)_v1.0.2_2026-06-27.zip" ^
   --title "Fika Bot Death Reconcile v1.0.2" ^
   --notes-file CHANGELOG.md
 ```
