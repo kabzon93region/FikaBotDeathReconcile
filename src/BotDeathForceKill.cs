@@ -15,30 +15,20 @@ namespace FikaBotDeathReconcile
 
         public static bool TryReconcile(FikaBot bot, string reason, ManualLogSource logger, bool verbose)
         {
-            if (bot == null)
+            if (bot == null || reason != "client_report")
             {
                 return false;
             }
 
-            var health = bot.ActiveHealthController as ActiveHealthController;
-            if (health == null)
+            var health = ResolveActiveHealth(bot);
+            if (health == null || !health.IsAlive)
             {
                 return false;
             }
 
-            if (health.IsAlive)
-            {
-                health.Kill(EDamageType.Bullet);
-                Log(logger, verbose, reason, bot, "Kill(Bullet)");
-                return true;
-            }
-
-            if (TryCompleteStuckDeath(bot, reason, logger, verbose))
-            {
-                return true;
-            }
-
-            return false;
+            health.Kill(EDamageType.Bullet);
+            Log(logger, verbose, reason, bot, "Kill(Bullet)");
+            return true;
         }
 
         public static bool IsHostZombie(FikaBot bot)
@@ -54,16 +44,27 @@ namespace FikaBotDeathReconcile
                 return false;
             }
 
-            if (GetCorpse(bot) == null)
+            if (GetCorpse(bot) != null)
             {
-                return true;
+                return false;
             }
 
             var botOwner = bot.AIData?.BotOwner;
             return botOwner != null && !botOwner.IsDead;
         }
 
-        private static Corpse GetCorpse(Player player)
+        internal static ActiveHealthController ResolveActiveHealth(FikaBot bot)
+        {
+            if (bot == null)
+            {
+                return null;
+            }
+
+            return bot.ActiveHealthController as ActiveHealthController
+                ?? bot.HealthController as ActiveHealthController;
+        }
+
+        internal static Corpse GetCorpse(Player player)
         {
             if (player == null || CorpseField == null)
             {
@@ -73,24 +74,14 @@ namespace FikaBotDeathReconcile
             return CorpseField.GetValue(player) as Corpse;
         }
 
-        private static bool TryCompleteStuckDeath(FikaBot bot, string reason, ManualLogSource logger, bool verbose)
+        internal static void SetCorpse(Player player, Corpse corpse)
         {
-            if (!IsHostZombie(bot))
+            if (player == null || CorpseField == null)
             {
-                return false;
+                return;
             }
 
-            try
-            {
-                bot.OnDead(EDamageType.Undefined);
-                Log(logger, verbose, reason, bot, "OnDead(Undefined)");
-                return true;
-            }
-            catch (System.Exception ex)
-            {
-                logger?.LogWarning($"[BOT_RECONCILE] OnDead failed netId={bot.NetId}: {ex.Message}");
-                return false;
-            }
+            CorpseField.SetValue(player, corpse);
         }
 
         private static void Log(ManualLogSource logger, bool verbose, string reason, FikaBot bot, string action)
@@ -99,7 +90,8 @@ namespace FikaBotDeathReconcile
             logger?.LogInfo($"[BOT_RECONCILE] {reason} netId={bot.NetId} profile={bot.ProfileId} nick={nickname} action={action}");
             if (verbose)
             {
-                logger?.LogInfo($"[BOT_RECONCILE] pos={bot.Position} alive={bot.HealthController?.IsAlive} corpse={(GetCorpse(bot) != null)}");
+                logger?.LogInfo(
+                    $"[BOT_RECONCILE] pos={bot.Position} alive={bot.HealthController?.IsAlive} corpse={(GetCorpse(bot) != null)}");
             }
         }
     }

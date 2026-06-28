@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -7,9 +7,9 @@
     <LangVersion>latest</LangVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2.0</AssemblyVersion>
-    <FileVersion>1.0.2.0</FileVersion>
+    <Version>1.1.2</Version>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
     <Product>Fika Bot Death Reconcile</Product>
     <Description>Fika coop: reconcile bot death desync (client-dead / host-alive zombie bots)</Description>
   </PropertyGroup>
@@ -20,9 +20,8 @@
     <CursorModdingDir>$(TarkovDir)CURSORAIMODING\</CursorModdingDir>
     <TarkovManagedDir>$(TarkovDir)EscapeFromTarkov_Data\Managed\</TarkovManagedDir>
     <TarkovBepInExCoreDir>$(TarkovDir)BepInEx\core\</TarkovBepInExCoreDir>
+    <TarkovFikaCoreDir>$(TarkovDir)BepInEx\plugins\Fika\</TarkovFikaCoreDir>
     <GameRefsDir>$(CursorModdingDir)game-assembly-base\05-reference-dlls\</GameRefsDir>
-    <FikaCoreDir>$(CursorModdingDir)gitarchive
-ew4\Fika\Fika-Plugin-2.3.1\</FikaCoreDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,8 +42,7 @@ ew4\Fika\Fika-Plugin-2.3.1\</FikaCoreDir>
       <Private>false</Private>
     </Reference>
     <Reference Include="Fika.Core">
-      <HintPath>$(FikaCoreDir)Fika.Core\bin\Release
-etstandard2.1\Fika.Core.dll</HintPath>
+      <HintPath>$(TarkovFikaCoreDir)Fika.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">
@@ -57,6 +55,10 @@ etstandard2.1\Fika.Core.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
       <HintPath>$(TarkovManagedDir)UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(TarkovManagedDir)UnityEngine.AnimationModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -76,6 +78,14 @@ etstandard2.1\Fika.Core.dll</HintPath>
     <Compile Include="src\BotDeathReconcileBehaviour.cs" />
     <Compile Include="src\BotDeathAudioSilencer.cs" />
     <Compile Include="src\BotDeathAudioPatches.cs" />
+    <Compile Include="src\BotDeathFastRecheck.cs" />
+    <Compile Include="src\BotDeathCombatAudioStop.cs" />
+    <Compile Include="src\BotDeathVisualFinalize.cs" />
+    <Compile Include="src\BotDeathBossCorpseFix.cs" />
+    <Compile Include="src\BotDeathCorpseFix.cs" />
+    <Compile Include="src\BotDeathCorpsePatches.cs" />
+    <Compile Include="src\BotCorpseGraceTracker.cs" />
+    <Compile Include="src\BotDeathPlayerHelper.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Logging;
 using Comfort.Common;
@@ -43,15 +44,55 @@ namespace FikaBotDeathReconcile
                     continue;
                 }
 
-                SilenceDeadObservedBot(observed, logger, verbose);
+                SilenceDeadAiPlayer(observed, logger, verbose);
             }
+        }
+
+        /// <summary>
+        /// Listen-host: FikaBot на хосте не ObservedPlayer — глушим стрельбу/фразы у мёртвых AI.
+        /// </summary>
+        internal static void ProcessHostDeadBots(ManualLogSource logger, bool verbose)
+        {
+            if (!FikaBackendUtils.IsServer)
+            {
+                return;
+            }
+
+            var candidates = BotDeathSnapshotCollector.CollectHostCorpseFixCandidates();
+            ProcessDeadHostPlayers(candidates, logger, verbose);
+
+            var bosses = BotDeathSnapshotCollector.CollectHostBossPlayers();
+            ProcessDeadHostPlayers(bosses, logger, verbose);
+        }
+
+        private static void ProcessDeadHostPlayers(IEnumerable<Player> players, ManualLogSource logger, bool verbose)
+        {
+            if (players == null)
+            {
+                return;
+            }
+
+            foreach (var bot in players)
+            {
+                if (bot?.HealthController == null || bot.HealthController.IsAlive)
+                {
+                    continue;
+                }
+
+                SilenceDeadAiPlayer(bot, logger, verbose);
+            }
+        }
+
+        internal static void SilenceDeadObservedBot(ObservedPlayer player, ManualLogSource logger, bool verbose)
+        {
+            SilenceDeadAiPlayer(player, logger, verbose);
         }
 
         internal static void Reset()
         {
         }
 
-        internal static void SilenceDeadObservedBot(ObservedPlayer player, ManualLogSource logger, bool verbose)
+        internal static void SilenceDeadAiPlayer(Player player, ManualLogSource logger, bool verbose)
         {
             if (player == null)
             {
@@ -60,7 +101,10 @@ namespace FikaBotDeathReconcile
 
             try
             {
-                player.ToggleMuteSpeechSource(true);
+                if (player is ObservedPlayer observed)
+                {
+                    observed.ToggleMuteSpeechSource(true);
+                }
 
                 var speaker = player.Speaker;
                 if (speaker != null)
@@ -71,6 +115,7 @@ namespace FikaBotDeathReconcile
                 }
 
                 StopSpeechSource(player);
+                BotDeathCombatAudioStop.StopAll(player);
 
                 var audioSources = player.gameObject.GetComponentsInChildren<AudioSource>(true);
                 for (int i = 0; i < audioSources.Length; i++)
@@ -91,12 +136,12 @@ namespace FikaBotDeathReconcile
                 {
                     var nickname = player.Profile?.Nickname ?? "?";
                     logger?.LogInfo(
-                        $"[BOT_RECONCILE] silenced dead observed bot netId={player.NetId} nick={nickname} audioSources={audioSources.Length}");
+                        $"[BOT_RECONCILE] silenced dead ai nick={nickname} id={BotDeathPlayerHelper.GetReconcileId(player)} audioSources={audioSources.Length}");
                 }
             }
             catch (System.Exception ex)
             {
-                logger?.LogWarning($"[BOT_RECONCILE] silence failed netId={player.NetId}: {ex.Message}");
+                logger?.LogWarning($"[BOT_RECONCILE] silence failed id={BotDeathPlayerHelper.GetReconcileId(player)}: {ex.Message}");
             }
         }
 

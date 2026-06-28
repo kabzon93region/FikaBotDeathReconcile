@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using BepInEx;
-using BepInEx.Configuration;
+using Fika.Core.Main.Utils;
 using UnityEngine;
 
 namespace FikaBotDeathReconcile
@@ -24,6 +23,8 @@ namespace FikaBotDeathReconcile
             {
                 _timer = 0f;
                 BotDeathAudioSilencer.Reset();
+                BotDeathCorpseFix.ResetRaid();
+                BotDeathFastRecheck.ResetRaid();
                 return;
             }
 
@@ -32,9 +33,20 @@ namespace FikaBotDeathReconcile
                 return;
             }
 
-            if (BotDeathReconcileNetwork.Instance.IsRemoteClient() && plugin.ClientSilenceDeadBotAudio.Value)
+            BotDeathBossCorpseFix.ProcessScheduledRechecks(plugin);
+            BotDeathFastRecheck.Process(plugin);
+
+            if (plugin.ClientSilenceDeadBotAudio.Value)
             {
-                BotDeathAudioSilencer.ProcessClientDeadBots(plugin.ModLogger, plugin.VerboseLogging.Value);
+                if (FikaBackendUtils.IsClient && BotDeathReconcileNetwork.Instance.IsRemoteClient())
+                {
+                    BotDeathAudioSilencer.ProcessClientDeadBots(plugin.ModLogger, plugin.VerboseLogging.Value);
+                }
+
+                if (BotDeathReconcileNetwork.Instance.IsHost())
+                {
+                    BotDeathAudioSilencer.ProcessHostDeadBots(plugin.ModLogger, plugin.VerboseLogging.Value);
+                }
             }
 
             _timer += Time.unscaledDeltaTime;
@@ -49,16 +61,26 @@ namespace FikaBotDeathReconcile
 
         private void RunTick(PluginCore plugin)
         {
-            if (BotDeathReconcileNetwork.Instance.IsRemoteClient() && plugin.ClientReportsEnabled.Value)
+            if (FikaBackendUtils.IsClient)
             {
-                var clientSnapshot = BotDeathSnapshotCollector.CollectClientObservedBots();
-                if (clientSnapshot.Entries.Count > 0)
+                if (BotDeathReconcileNetwork.Instance.IsRemoteClient() && plugin.ClientReportsEnabled.Value)
                 {
-                    BotDeathReconcileNetwork.Instance.SendClientReport(clientSnapshot);
-                    if (plugin.VerboseLogging.Value)
+                    var clientSnapshot = BotDeathSnapshotCollector.CollectClientObservedBots();
+                    if (clientSnapshot.Entries.Count > 0)
                     {
-                        plugin.ModLogger.LogInfo($"[BOT_RECONCILE] client report sent entries={clientSnapshot.Entries.Count}");
+                        BotDeathReconcileNetwork.Instance.SendClientReport(clientSnapshot);
+                        if (plugin.VerboseLogging.Value)
+                        {
+                            plugin.ModLogger.LogInfo($"[BOT_RECONCILE] client report sent entries={clientSnapshot.Entries.Count}");
+                        }
                     }
+                }
+
+                var clientFixed = BotDeathCorpseFix.RunClientFix(plugin);
+                var clientBossFixed = BotDeathBossCorpseFix.RunClientBossScan(plugin);
+                if ((clientFixed > 0 || clientBossFixed > 0) && plugin.VerboseLogging.Value)
+                {
+                    plugin.ModLogger.LogInfo($"[BOT_CORPSE_FIX] client fixed={clientFixed} boss={clientBossFixed}");
                 }
             }
 
@@ -98,12 +120,26 @@ namespace FikaBotDeathReconcile
                 }
             }
 
-            if (!plugin.HostLocalScanEnabled.Value)
+            var hostFixed = BotDeathCorpseFix.RunHostFix(plugin);
+            var hostBossFixed = BotDeathBossCorpseFix.RunHostBossScan(plugin);
+            if ((hostFixed > 0 || hostBossFixed > 0) && plugin.VerboseLogging.Value)
             {
-                return;
+                plugin.ModLogger.LogInfo($"[BOT_CORPSE_FIX] host fixed={hostFixed} boss={hostBossFixed}");
             }
 
+            if (plugin.HostLocalScanEnabled.Value && plugin.VerboseLogging.Value)
+            {
+                LogHostScanMonitor(plugin);
+            }
+        }
+
+        /// <summary>
+        /// Только логи — никаких Kill/OnDead на хосте (listen-host безопасен).
+        /// </summary>
+        private static void LogHostScanMonitor(PluginCore plugin)
+        {
             var hostSnapshot = BotDeathSnapshotCollector.CollectHostBots();
+            var zombieCount = 0;
             for (int i = 0; i < hostSnapshot.Entries.Count; i++)
             {
                 if (!BotDeathSnapshotCollector.TryGetHostBot(hostSnapshot.Entries[i].NetId, out var bot))
@@ -111,21 +147,14 @@ namespace FikaBotDeathReconcile
                     continue;
                 }
 
-                if (!BotDeathForceKill.IsHostZombie(bot))
+                if (BotDeathForceKill.IsHostZombie(bot))
                 {
-                    continue;
-                }
-
-                if (!CanActOnNetId(bot.NetId))
-                {
-                    continue;
-                }
-
-                if (BotDeathForceKill.TryReconcile(bot, "host_zombie", plugin.ModLogger, plugin.VerboseLogging.Value))
-                {
-                    MarkActed(bot.NetId);
+                    zombieCount++;
                 }
             }
+
+            plugin.ModLogger.LogInfo(
+                $"[BOT_RECONCILE] host monitor (no actions) bots={hostSnapshot.Entries.Count} would_zombie={zombieCount}");
         }
 
         private bool CanActOnNetId(int netId)
