@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.3 (2026-06-29) — Boss stuck log spam fix
+
+- **Fix log-spam:** `[BOSS_CORPSE_FIX] stuck ...` теперь жёстко дедуплицируется даже если `ProfileId` пустой (fallback key: `nickname:role`)
+- **Perf:** убран повторный вывод одной и той же stuck-диагностики на каждом scan/recheck цикле
+
 ## v1.1.2 (2026-06-28) — Instant ragdoll
 
 - **Fix задержки ~4 сек:** ragdoll/visual finalize сразу в postfix OnDead/Kill, не ждёт `IntervalSeconds` scan

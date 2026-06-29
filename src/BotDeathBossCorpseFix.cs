@@ -277,17 +277,25 @@ namespace FikaBotDeathReconcile
             bool verbose)
         {
             var profileId = player.ProfileId;
-            if (string.IsNullOrEmpty(profileId) || !LoggedStuckProfileIds.Add(profileId))
+            var nickname = player.Profile?.Nickname ?? "unknown";
+            var role = player.Profile?.Info?.Settings != null
+                ? player.Profile.Info.Settings.Role.ToString()
+                : "unknown";
+            var dedupeKey = !string.IsNullOrEmpty(profileId)
+                ? profileId
+                : $"{nickname}:{role}";
+            if (!LoggedStuckProfileIds.Add(dedupeKey))
             {
-                if (!verbose)
-                {
-                    return;
-                }
+                return;
             }
 
             logger?.LogInfo(
-                $"[BOSS_CORPSE_FIX] stuck {reason} nick={player.Profile?.Nickname} role={player.Profile?.Info?.Settings?.Role} " +
+                $"[BOSS_CORPSE_FIX] stuck {reason} nick={nickname} role={role} " +
                 $"alive={isAlive} botOwnerDead={botOwnerDead} corpse=false type={BotDeathPlayerHelper.GetPlayerTypeLabel(player)}");
+            if (verbose)
+            {
+                logger?.LogInfo($"[BOSS_CORPSE_FIX] stuck-key={dedupeKey}");
+            }
         }
     }
 }
