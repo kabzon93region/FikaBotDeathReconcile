@@ -192,22 +192,18 @@ namespace FikaBotDeathReconcile
         private static void DisableAnimators(Player player)
         {
             SetWrappedAnimatorEnabled(player, "BodyAnimatorCommon", false);
-            SetWrappedAnimatorEnabled(player, "ArmsAnimatorCommon", false);
-
-            try
-            {
-                var playable = player.PlayerBones?.PlayableAnimator;
-                playable?.GetType().GetMethod("Stop")?.Invoke(playable, null);
-            }
-            catch
-            {
-                // ignore
-            }
+            // ArmsAnimatorCommon left active — weapon IK needs it when someone picks up the weapon.
+            // PlayableAnimator left active — drives ProceduralWeaponAnimation.
 
             foreach (var animator in player.GetComponentsInChildren<Animator>(true))
             {
-                if (animator != null)
+                if (animator != null && animator.enabled)
                 {
+                    // Disable body animators only, skip weapon/arms animators
+                    var go = animator.gameObject;
+                    var name = go.name.ToLowerInvariant();
+                    if (name.Contains("weapon") || name.Contains("firearm") || name.Contains("arms"))
+                        continue;
                     animator.enabled = false;
                 }
             }
